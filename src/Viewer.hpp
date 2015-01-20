@@ -5,6 +5,7 @@
 #include <QGLShaderProgram>
 #include <QMatrix4x4>
 #include <QtGlobal>
+#include <vector>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
 #include <QOpenGLBuffer>
@@ -17,12 +18,15 @@ class Viewer : public QGLWidget {
     
     Q_OBJECT
 
+	enum drawMode {WIRE_FRAME, FACE, MULTICOLOURED};
+
 public:
     Viewer(const QGLFormat& format, QWidget *parent = 0);
     virtual ~Viewer();
     
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
+
 
     // If you want to render a new frame, call do not call paintGL(),
     // instead, call update() to ensure that the view gets a paint 
@@ -44,14 +48,20 @@ protected:
     virtual void mouseReleaseEvent ( QMouseEvent * event );
     // Called when the mouse moves
     virtual void mouseMoveEvent ( QMouseEvent * event );
+	// Called when a key is pressed
+	virtual void keyPressEvent ( QKeyEvent * event );
+	// Called when a key is released
+	virtual void keyReleaseEvent ( QKeyEvent * event ); 
 
 private:
 
     QMatrix4x4 getCameraMatrix();
     void translateWorld(float x, float y, float z);
     void rotateWorld(float x, float y, float z);
-    void scaleWorld(float x, float y, float z);
-
+    void scaleWorld(float x, float y, float z);	
+	void defineCubeGeometry();
+	void defineUWellGeometry();
+	void addCube(QMatrix4x4 modelMatrix);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mVertexBufferObject;
@@ -64,11 +74,19 @@ private:
     int mMvpMatrixLocation;
 
     QMatrix4x4 mPerspMatrix;
-    QMatrix4x4 mModelMatrices[4];
+	std::vector<QMatrix4x4> mModelMatrices;
     QMatrix4x4 mTransformMatrix;
     
     QTimer* mTimer;
     QGLShaderProgram mProgram;
+	
+	// for scale and rotate.
+	Qt::MouseButton pressedMouseButton;
+	int prePos;
+	bool shiftPressed;
+
+	drawMode mode;
+
 };
 
 #endif

@@ -34,6 +34,15 @@ void AppWindow::keyPressEvent(QKeyEvent *event) {
 }
 
 void AppWindow::createActions() {
+	// Creates a New game action in the Application menu
+	QAction* newGameAct = new QAction(tr("&New game"), this);
+	m_menu_actions.push_back(newGameAct);
+	
+	newGameAct->setShortcut(Qt::CTRL | Qt::Key_N);
+	newGameAct->setStatusTip(tr("Start a new game"));
+
+	connect(newGameAct, SIGNAL(triggered()), this, SLOT(newGame()));
+
     // Creates a new action for quiting and pushes it onto the menu actions vector 
     QAction* quitAct = new QAction(tr("&Quit"), this);
     m_menu_actions.push_back(quitAct);
@@ -47,6 +56,7 @@ void AppWindow::createActions() {
 
     // Connect the action with the signal and slot designated
     connect(quitAct, SIGNAL(triggered()), this, SLOT(close()));
+
 }
 
 void AppWindow::createMenu() {
@@ -57,3 +67,6 @@ void AppWindow::createMenu() {
     }
 }
 
+void AppWindow::newGame(){
+
+}

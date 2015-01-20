@@ -22,17 +22,35 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     , mVertexBufferObject(QGLBuffer::VertexBuffer)
 #endif
 {
+	shiftPressed = false;
+	mode = WIRE_FRAME;
     mTimer = new QTimer(this);
     connect(mTimer, SIGNAL(timeout()), this, SLOT(update()));
     mTimer->start(1000/30);
 
-    mModelMatrices[0].translate(-5,-10,0);
-    mModelMatrices[1].translate(5,-10,0);
-    mModelMatrices[1].rotate(90, QVector3D(0,0,1));
-    mModelMatrices[2].translate(-5,10,0);
-    mModelMatrices[2].rotate(270, QVector3D(0,0,1));
-    mModelMatrices[3].translate(5,10,0);
-    mModelMatrices[3].rotate(180, QVector3D(0,0,1));
+	// drawing U-well geometry.
+	QMatrix4x4 tempMatrix;
+	tempMatrix.setToIdentity();
+
+	tempMatrix.translate(-6, 9, 0);
+
+	addCube(tempMatrix);
+
+	for (int i = 0; i < 20; i++) {
+		tempMatrix.translate(0, -1, 0);
+		addCube(tempMatrix);
+	}
+
+	for (int i = 0; i < 11; i++) {
+		tempMatrix.translate(1, 0, 0);
+		addCube(tempMatrix);
+	}
+
+	for (int i = 0; i < 20; i++) {
+		tempMatrix.translate(0, 1, 0);
+		addCube(tempMatrix);
+	}
+	
 }
 
 Viewer::~Viewer() {
@@ -45,6 +63,74 @@ QSize Viewer::minimumSizeHint() const {
 
 QSize Viewer::sizeHint() const {
     return QSize(300, 600);
+}
+
+void Viewer::addCube(QMatrix4x4 modelMatrix) {
+	mModelMatrices.push_back(modelMatrix);
+}
+
+void Viewer::defineCubeGeometry() {
+	float cubeData[] = {
+		// Faces of the cube
+		// X   Y    Z
+		// Back face
+		0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+
+		0.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+
+		// Top face
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 0.0f,
+
+		1.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 0.0f,
+
+		// Right face
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 0.0f, -1.0f,
+
+		1.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 0.0f,
+
+		// Left face
+		0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, -1.0f,
+		0.0f, 1.0f, -1.0f,
+
+		0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, -1.0f,
+
+		// Bottom face
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, -1.0f,
+
+		// Front face
+		1.0f, 0.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		0.0f, 1.0f, -1.0f,
+
+		1.0f, 0.0f, -1.0f,
+		0.0f, 1.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+	
+	};
+
+    mVertexBufferObject.allocate(cubeData, 6 * 6 * 3 * sizeof(float));
+
 }
 
 void Viewer::initializeGL() {
@@ -70,13 +156,6 @@ void Viewer::initializeGL() {
         std::cerr << "Cannot link shaders." << std::endl;
         return;
     }
-
-    float triangleData[] = {
-        //  X     Y     Z
-         0.0f, 0.0f, 0.0f,
-         1.0f, 0.0f, 0.0f,
-         0.0f, 1.0f, 0.0f,
-    };
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
@@ -115,7 +194,8 @@ void Viewer::initializeGL() {
         return;
     }
 
-    mVertexBufferObject.allocate(triangleData, 3 * 3 * sizeof(float));
+    // mVertexBufferObject.allocate(triangleData, 3 * 3 * sizeof(float));
+	defineCubeGeometry();
 
     mProgram.bind();
 
@@ -134,14 +214,10 @@ void Viewer::paintGL() {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     mVertexArrayObject.bind();
 #endif
-
-
-    for (int i = 0; i < 4; i++) {
-
-        mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * mModelMatrices[i]);
-
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
+	for (int i = 0; i < mModelMatrices.size(); i++) {	
+		mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * mModelMatrices[i]);
+		glDrawArrays(GL_LINE_STRIP, 0, 12 * 3);
+	}
 }
 
 void Viewer::resizeGL(int width, int height) {
@@ -157,15 +233,46 @@ void Viewer::resizeGL(int width, int height) {
 
 void Viewer::mousePressEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: button " << event->button() << " pressed\n";
+	pressedMouseButton = event->button();
+	prePos = event->x();
+	setFocus();
 }
 
 void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: button " << event->button() << " released\n";
+	pressedMouseButton = Qt::NoButton;
 }
 
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: Motion at " << event->x() << ", " << event->y() << std::endl;
+
+	if (shiftPressed) {
+		mTransformMatrix.scale( event->x() > prePos ? 1.05:0.95);
+	} else if (pressedMouseButton == Qt::LeftButton) {
+		mTransformMatrix.rotate(event->x() - prePos, QVector3D(1, 0, 0));
+	} else if (pressedMouseButton == Qt::MidButton) {
+		mTransformMatrix.rotate(event->x() - prePos, QVector3D(0, 1, 0));
+	} else if (pressedMouseButton == Qt::RightButton) {
+		mTransformMatrix.rotate(event->x() - prePos, QVector3D(0, 0, 1));
+	}
+	prePos = event->x();
+	update();
 }
+
+void Viewer::keyPressEvent ( QKeyEvent * event ) {
+	if ( event->key() == Qt::Key_Shift ) {
+		std::cerr << "shift key pressed." << std::endl;
+		shiftPressed = true;
+	}
+}
+
+void Viewer::keyReleaseEvent ( QKeyEvent * event ) {
+	if (event->key() == Qt::Key_Shift) {
+		std::cerr << "shift key released." << std::endl;
+		shiftPressed = false;
+	}
+}
+
 
 QMatrix4x4 Viewer::getCameraMatrix() {
     QMatrix4x4 vMatrix;
