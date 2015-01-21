@@ -61,7 +61,7 @@ private:
     void scaleWorld(float x, float y, float z);	
 	void defineCubeGeometry();
 	void defineUWellGeometry();
-	void addCube(QMatrix4x4 modelMatrix);
+	void addCube(QMatrix4x4 modelMatrix, QVector4D color);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mVertexBufferObject;
@@ -72,9 +72,11 @@ private:
 
     int mVertexLocation;
     int mMvpMatrixLocation;
+	int mColorLocation;
 
     QMatrix4x4 mPerspMatrix;
 	std::vector<QMatrix4x4> mModelMatrices;
+	std::vector<QVector4D> mCubeColors;
     QMatrix4x4 mTransformMatrix;
     
     QTimer* mTimer;

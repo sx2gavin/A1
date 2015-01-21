@@ -34,21 +34,21 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
 	tempMatrix.translate(-6, 9, 0);
 
-	addCube(tempMatrix);
+	addCube(tempMatrix, QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
 
 	for (int i = 0; i < 20; i++) {
 		tempMatrix.translate(0, -1, 0);
-		addCube(tempMatrix);
+		addCube(tempMatrix, QVector4D(1.0f, 0.0f, 1.0f, 1.0f));
 	}
 
 	for (int i = 0; i < 11; i++) {
 		tempMatrix.translate(1, 0, 0);
-		addCube(tempMatrix);
+		addCube(tempMatrix, QVector4D(0.0f, 1.0f, 0.0f, 1.0f));
 	}
 
 	for (int i = 0; i < 20; i++) {
 		tempMatrix.translate(0, 1, 0);
-		addCube(tempMatrix);
+		addCube(tempMatrix, QVector4D(0.0f, 1.0f, 1.0f, 1.0f));
 	}
 	
 }
@@ -65,8 +65,10 @@ QSize Viewer::sizeHint() const {
     return QSize(300, 600);
 }
 
-void Viewer::addCube(QMatrix4x4 modelMatrix) {
+// Add a cube in the view with modelMatrix and color attribute
+void Viewer::addCube(QMatrix4x4 modelMatrix, QVector4D color) {
 	mModelMatrices.push_back(modelMatrix);
+	mCubeColors.push_back(color);
 }
 
 void Viewer::defineCubeGeometry() {
@@ -84,48 +86,48 @@ void Viewer::defineCubeGeometry() {
 
 		// Top face
 		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, -1.0f,
+		0.0f, 1.0f, 1.0f,
 		1.0f, 1.0f, 0.0f,
 
 		1.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, -1.0f,
+		0.0f, 1.0f, 1.0f,
 		1.0f, 1.0f, 0.0f,
 
 		// Right face
 		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, 0.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
 
 		1.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 0.0f,
 
 		// Left face
 		0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, -1.0f,
-		0.0f, 1.0f, -1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
 
 		0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, 1.0f,
 
 		// Bottom face
 		0.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
 
 		0.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 1.0f,
 
 		// Front face
-		1.0f, 0.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		0.0f, 1.0f, -1.0f,
+		1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
 
-		1.0f, 0.0f, -1.0f,
-		0.0f, 1.0f, -1.0f,
-		0.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
 	
 	};
 
@@ -141,6 +143,8 @@ void Viewer::initializeGL() {
     }
 
     glClearColor(0.7, 0.7, 1.0, 0.0);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
     if (!mProgram.addShaderFromSourceFile(QGLShader::Vertex, "shader.vert")) {
         std::cerr << "Cannot load vertex shader." << std::endl;
@@ -204,6 +208,7 @@ void Viewer::initializeGL() {
 
     // mPerspMatrixLocation = mProgram.uniformLocation("cameraMatrix");
     mMvpMatrixLocation = mProgram.uniformLocation("mvpMatrix");
+	mColorLocation = mProgram.uniformLocation("vertColor");
 }
 
 void Viewer::paintGL() {
@@ -216,7 +221,12 @@ void Viewer::paintGL() {
 #endif
 	for (int i = 0; i < mModelMatrices.size(); i++) {	
 		mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * mModelMatrices[i]);
-		glDrawArrays(GL_LINE_STRIP, 0, 12 * 3);
+		mProgram.setUniformValue(mColorLocation, mCubeColors[i]);
+		if (mode == WIRE_FRAME) {
+			glDrawArrays(GL_LINE_STRIP, 0, 12 * 3);
+		} else if (mode == FACE) {		
+			glDrawArrays(GL_TRIANGLES, 0, 12 * 3); 
+		}
 	}
 }
 

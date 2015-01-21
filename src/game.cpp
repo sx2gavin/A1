@@ -51,7 +51,12 @@ static const Piece PIECES[] = {
         "...."
         ".xx."
         ".xx."
-        "....", 6,			1,1,1,1)
+        "....", 6,			1,1,1,1),
+  Piece(
+		".x.."
+		"xxx."
+		".x.."
+		".x..", 7,         	0,0,0,1) 
 };
 
 Piece::Piece(const char *desc, int cindex, 
