@@ -33,6 +33,9 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 	// fps = 30
     mTimer->start(1000/30);
 	counter = 0; 
+	// speed indicates the numbers of frames of time the game needs to make the block go down by
+	// one step.
+	speed = 30;
 	setFocusPolicy(Qt::StrongFocus);
 	persistenceSpeed = 0;
 	persistenceAxis = QVector3D(0, 0, 0);
@@ -65,6 +68,41 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
 Viewer::~Viewer() {
 	delete game;
+}
+
+void Viewer::newGame() {
+	if (game != NULL) {
+		delete game;
+	}
+	game = new Game(10, 20);
+}
+
+void Viewer::resetGame() {
+	game->reset();
+}
+
+void Viewer::wireframeMode() {
+	mode = WIRE_FRAME;
+}
+
+void Viewer::faceMode() {
+	mode = FACE;
+}
+
+void Viewer::multicolouredMode() {
+	mode = MULTICOLOURED;
+}
+
+void Viewer::slowSpeed() {
+	speed = 30;
+}
+
+void Viewer::mediumSpeed() {
+	speed = 20;
+}
+
+void Viewer::fastSpeed() {
+	speed = 10;
 }
 
 QSize Viewer::minimumSizeHint() const {
@@ -149,7 +187,7 @@ void Viewer::defineCubeGeometry() {
 
 		1.0f, 1.0f, 0.0f,
 		0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f,
 
 		// Right face
 		1.0f, 1.0f, 0.0f,
@@ -376,10 +414,8 @@ void Viewer::keyPressEvent ( QKeyEvent * event ) {
 		if (game != NULL) {
 			game->drop();
 		}
-	} else if (event->key() == Qt::Key_T) {
-		if (game != NULL) {
-			game->tick();
-		}
+	} else if (event->key() == Qt::Key_0) {
+		game->tick();
 	} else {
 		QWidget::keyPressEvent(event);
 	}
@@ -388,13 +424,13 @@ void Viewer::keyPressEvent ( QKeyEvent * event ) {
 }
 
 void Viewer::updateGame() {
-	if ( counter < 30 ) {
+	if ( counter < speed ) {
 		counter++;
 	} else {
 		game->tick();
 		counter = 0;
 	}
-	if (persistenceSpeed != 0 && pressedMouseButton == Qt::NoButton) {
+	if (abs(persistenceSpeed) >= 2 && pressedMouseButton == Qt::NoButton) {
 		mTransformMatrix.rotate(persistenceSpeed, persistenceAxis);
 	}
 	drawCurrentGameState();

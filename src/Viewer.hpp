@@ -28,6 +28,14 @@ public:
     
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
+	void newGame();
+	void resetGame();
+	void wireframeMode();
+	void faceMode();
+	void multicolouredMode();
+	void slowSpeed();
+	void mediumSpeed();
+	void fastSpeed();
 
 
     // If you want to render a new frame, call do not call paintGL(),

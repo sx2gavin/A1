@@ -20,6 +20,13 @@ protected:
 
 private slots:
 	void newGame();
+	void resetGame();
+	void wireframeMode();
+	void faceMode();
+	void multicolouredMode();
+	void slowSpeed();
+	void mediumSpeed();
+	void fastSpeed();
 
 private:
     void createActions();
@@ -27,6 +34,8 @@ private:
 
     // Each menu itself
     QMenu* m_menu_app;
+	QMenu* m_menu_draw;
+	QMenu* m_menu_speed;
 
     std::vector<QAction*> m_menu_actions;
     Viewer* m_viewer;
