@@ -97,6 +97,17 @@ void AppWindow::createActions() {
 	multicolouredAct->setShortcut(Qt::Key_M);
 	connect(multicolouredAct, SIGNAL(triggered()), this, SLOT(multicolouredMode()));
 	m_menu_draw->addAction(multicolouredAct);
+
+	QActionGroup* drawGroup = new QActionGroup(this);
+
+	wireframeAct->setCheckable(true);
+	faceAct->setCheckable(true);
+	multicolouredAct->setCheckable(true);
+	faceAct->setChecked(true);
+
+	wireframeAct->setActionGroup(drawGroup);
+	faceAct->setActionGroup(drawGroup);
+	multicolouredAct->setActionGroup(drawGroup);
 	
 	// slow speed	
 	QAction* slowSpeedAct = new QAction(tr("&Slow"), this);
@@ -118,6 +129,17 @@ void AppWindow::createActions() {
 	fastSpeedAct->setShortcut(Qt::Key_3);
 	connect(fastSpeedAct, SIGNAL(triggered()), this, SLOT(fastSpeed()));
 	m_menu_speed->addAction(fastSpeedAct);
+
+	QActionGroup* speedGroup = new QActionGroup(this);
+	slowSpeedAct->setCheckable(true);
+	mediumSpeedAct->setCheckable(true);
+	fastSpeedAct->setCheckable(true);
+	slowSpeedAct->setChecked(true);
+	slowSpeedAct->setActionGroup(speedGroup);
+	mediumSpeedAct->setActionGroup(speedGroup);
+	fastSpeedAct->setActionGroup(speedGroup);
+
+	
 }
 
 void AppWindow::createMenu() {
