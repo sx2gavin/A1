@@ -14,6 +14,8 @@
 #include <QGLBuffer>
 #endif
 
+class Game;
+
 class Viewer : public QGLWidget {
     
     Q_OBJECT
@@ -53,6 +55,9 @@ protected:
 	// Called when a key is released
 	virtual void keyReleaseEvent ( QKeyEvent * event ); 
 
+private slots:
+	void updateGame();
+
 private:
 
     QMatrix4x4 getCameraMatrix();
@@ -61,7 +66,9 @@ private:
     void scaleWorld(float x, float y, float z);	
 	void defineCubeGeometry();
 	void defineUWellGeometry();
-	void addCube(QMatrix4x4 modelMatrix, QVector4D color);
+	void addWell(QMatrix4x4 modelMatrix, QVector4D color);
+	void addBlock(int x, int y, QVector4D color);
+	void drawCurrentGameState();
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mVertexBufferObject;
@@ -74,18 +81,26 @@ private:
     int mMvpMatrixLocation;
 	int mColorLocation;
 
+	Game *game;
+
     QMatrix4x4 mPerspMatrix;
-	std::vector<QMatrix4x4> mModelMatrices;
-	std::vector<QVector4D> mCubeColors;
+	std::vector<QMatrix4x4> mWellModelMatrices;
+	std::vector<QVector4D> mWellColors;
+	std::vector<QMatrix4x4> mBlockModelMatrices;
+	std::vector<QVector4D> mBlockColors;
     QMatrix4x4 mTransformMatrix;
     
     QTimer* mTimer;
+	int counter;
+	int speed;
     QGLShaderProgram mProgram;
 	
 	// for scale and rotate.
 	Qt::MouseButton pressedMouseButton;
 	int prePos;
 	bool shiftPressed;
+	QVector3D persistenceAxis;
+	int persistenceSpeed;
 
 	drawMode mode;
 

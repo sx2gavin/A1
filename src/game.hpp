@@ -93,7 +93,7 @@ public:
   // Get the contents of the cell at row r and column c.  Returns
   // the following values:
   // 				 -1: Cell is empty.
-  // 	{0,1,2,3,4,5,6}: Cell contains a piece with the given ID.  Use
+  // 	{0,1,2,3,4,5,6,7}: Cell contains a piece with the given ID.  Use
   //				     this ID to choose a colour when drawing this cell.
   // NOTE!  You can (and should) actually call this method with values
   // for r in [0,board_height_+4), not [0,board_height_].  The top four
